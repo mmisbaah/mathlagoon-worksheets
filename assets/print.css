@@ -1,0 +1,19 @@
+@page {size:A4;margin:15mm;}
+body.printing-worksheet {max-width:none!important;padding:0!important;margin:0!important;background:white!important;color:black!important;}
+body.printing-worksheet > *:not(#print-host) {display:none!important;}
+#print-host {display:block!important;font:12pt/1.45 Arial,sans-serif;background:white;color:black;}
+#print-host header {display:block!important;font-weight:bold;border-bottom:1pt solid #555;padding-bottom:8pt;margin-bottom:12pt;}
+#print-host footer {display:block!important;font-size:9pt;margin-top:14pt;border-top:1pt solid #bbb;padding-top:6pt;}
+#print-host .level-page,#print-host .section {display:block!important;padding:0!important;margin:0!important;background:white!important;box-shadow:none!important;}
+#print-host .grid {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12pt!important;}
+#print-host .problem,#print-host .shape-card,#print-host .wp,.worked-example,#print-host .trace-row {break-inside:avoid;page-break-inside:avoid;box-shadow:none!important;}
+#print-host .problem {font-size:14pt!important;border:0!important;padding:8pt 0!important;}
+#print-host h2,#print-host h3 {break-after:avoid;}
+#print-host .worked-example {padding:8pt;font-size:10pt;border:1pt solid #aaa;background:white;}
+#print-host .worked-example h3 {font-size:12pt;}
+#print-host .printed-answer {display:inline-block;min-width:35pt;border-bottom:1pt solid #444;padding:0 3pt;font-weight:bold;}
+#print-host.ink-saving {filter:grayscale(1);}
+#print-host.ink-saving * {box-shadow:none!important;text-shadow:none!important;}
+#print-host svg {max-width:100%;overflow:visible;}
+#print-host .controls,#print-host .back-btn {display:none!important;}
+#print-host .name-date {display:flex!important;gap:20pt;font-size:10pt;}
