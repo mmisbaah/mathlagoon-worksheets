@@ -15,13 +15,16 @@
   window.printSectionAsImage=function(button){
     cleanup();
     const section=button.closest('.section'); if(!section)return;
+    const levelMatch=section.closest('.level-page')?.id.match(/^level-(\d+)$/);
+    const level=levelMatch?Number(levelMatch[1]):Number(section.id.match(/^l(\d+)-/)?.[1]);
+    const subject=section.querySelector('h2.section-title,h2')?.textContent.trim()||'Worksheet';
     const mode=section.querySelector('.print-mode')?.value||'blank';
     const host=document.createElement('div');host.id='print-host';
     if(section.querySelector('.ink-saving')?.checked)host.className='ink-saving';
     const header=document.createElement('header');
-    header.textContent=`Math Lagoon · Worksheet Hub · Skill Level ${section.id[1]} · ${section.querySelector('h2').textContent}${mode==='key'?' · Answer key':''}`;
+    header.textContent=`Math Lagoon · Worksheet Hub · Skill Level ${level} · ${subject}${mode==='key'?' · Answer key':''}`;
     host.append(header);
-    const wrapper=document.createElement('div');wrapper.id=`level-${section.id[1]}`;wrapper.className='level-page active-level';
+    const wrapper=document.createElement('div');wrapper.id=`level-${level}`;wrapper.className='level-page active-level';
     const clone=section.cloneNode(true);clone.removeAttribute('id');
     const live=[...section.querySelectorAll('input')];
     clone.querySelectorAll('input').forEach((input,i)=>{
@@ -34,7 +37,7 @@
     clone.querySelectorAll('.correct,.incorrect').forEach(el=>el.classList.remove('correct','incorrect'));
     clone.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
     clone.classList.add('active');wrapper.append(clone);host.append(wrapper);
-    const footer=document.createElement('footer');footer.textContent='worksheets.mathlagoon.com · Print or choose Save as PDF in your print dialog.';host.append(footer);
+    const footer=document.createElement('footer');footer.textContent=`Skill Level ${level} · ${subject} · worksheets.mathlagoon.com · Print or choose Save as PDF in your print dialog.`;host.append(footer);
     document.body.append(host);document.body.classList.add('printing-worksheet');
     window.print();
   };

@@ -91,3 +91,16 @@ test('print builds blank, completed and answer-key copies without changing learn
     }
   }finally{w.close();}
 });
+test('printed headers and footers identify the correct level and subject',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    for(let level=1;level<=5;level++){
+      const section=d.getElementById(`l${level}-section-math`),button=section.querySelector('[onclick*="printSection"]');
+      w.printSectionAsImage(button);
+      const host=d.getElementById('print-host');
+      assert.match(host.querySelector('header').textContent,new RegExp(`Skill Level ${level} · Math`));
+      assert.match(host.querySelector('footer').textContent,new RegExp(`Skill Level ${level} · Math`));
+      w.dispatchEvent(new w.Event('afterprint'));
+    }
+  }finally{w.close();}
+});
