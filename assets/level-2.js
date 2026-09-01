@@ -29,7 +29,8 @@
   let mathChecked = false;
 
   function genMathProblems(op, count) {
-    mathProblems = WorksheetCore.generate(2, op, count);
+    const challenge = Number(document.getElementById('l2-section-math').dataset.challenge);
+    mathProblems = challenge ? WorksheetCore.getChallenge(2, op, challenge) : WorksheetCore.generate(2, op, count);
     mathChecked = false;
     document.getElementById('l2-mathReveal').disabled = true;
     renderMath();
@@ -42,7 +43,7 @@
     mathProblems.forEach((p, i) => {
       const div = document.createElement('div');
       div.className = 'problem';
-      div.innerHTML = `${i + 1}. ${p.a} ${p.symbol} ${p.b} = <input class="ans" type="text" inputmode="numeric" data-index="${i}" autocomplete="off">`;
+      div.innerHTML = `${i + 1}. ${p.text || `${p.a} ${p.symbol} ${p.b} =`} <input class="ans" type="text" inputmode="numeric" data-index="${i}" autocomplete="off">`;
       grid.appendChild(div);
     });
   }

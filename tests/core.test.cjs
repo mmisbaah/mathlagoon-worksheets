@@ -14,8 +14,8 @@ for(let level=1;level<=5;level++)for(const op of operations[level-1])test(`Level
     assert.equal(new Set(questions.map(core.key)).size,questions.length);
     for(const p of questions){
       let expected;
-      if(op==='add')expected=p.a+p.b;
-      if(op==='sub')expected=p.a-p.b;
+      if(op==='add')expected=p.variant==='missingStart'?p.a:p.variant==='missingChange'?p.b:p.a+p.b;
+      if(op==='sub')expected=p.variant==='missingStart'?p.a:p.variant==='missingChange'?p.b:p.a-p.b;
       if(op==='mul')expected=p.a*p.b;
       if(op==='div'){expected=Math.floor(p.a/p.b);assert.equal(p.a%p.b,p.remainder??0);}
       if(op==='order')expected=p.grouped?(p.a+p.b)*p.c:p.a+p.b*p.c;
@@ -31,6 +31,16 @@ for(let level=1;level<=5;level++)for(const op of operations[level-1])test(`Level
 });
 test('invalid generator requests fail explicitly',()=>{
   assert.throws(()=>core.generate(1,'div',5));assert.throws(()=>core.generate(6,'add',5));assert.throws(()=>core.generate(1,'add',0));
+});
+test('every arithmetic operation has 20 challenges of 5 globally unique questions',()=>{
+  const audit=core.verifyQuestionBank();
+  assert.deepEqual(audit,{levels:5,challengesPerOperation:20,questionsPerChallenge:5,errors:0});
+  const operations=[['add','sub'],['add','sub'],['add','sub','mul','div'],['add','sub','mul','div','order'],['mul','div','percent','negative','order']];
+  for(let level=1;level<=5;level++)for(const op of operations[level-1]){
+    const bank=core.createChallengeBank(level,op);assert.equal(bank.length,20);assert.ok(bank.every(challenge=>challenge.length===5));
+    const keys=bank.flat().map(core.key);assert.equal(new Set(keys).size,100);
+    const setups=bank.flat().map(core.setupKey);assert.equal(new Set(setups).size,100);
+  }
 });
 test('mini Sudoku keeps enough clues for exactly one solution',()=>{
  const solution=[[1,2,3,4],[3,4,1,2],[2,1,4,3],[4,3,2,1]];

@@ -48,7 +48,9 @@
     try { localStorage.setItem(key, val); } catch (e) { /* ignore */ }
   }
 
-  let stars = parseInt(safeGet('wh_stars', '0'), 10) || 0;
+  let activeProfile = safeGet('wh_active_profile', 'learner-1');
+  const starKey = () => 'wh_stars_' + activeProfile;
+  let stars = parseInt(safeGet(starKey(), safeGet('wh_stars', '0')), 10) || 0;
   let soundOn = safeGet('wh_sound', 'on') === 'on';
   let progress = parseInt(safeGet('wh_progress', '1'), 10) || 1;
 
@@ -58,7 +60,7 @@
   }
   function addStars(n) {
     stars += n;
-    safeSet('wh_stars', String(stars));
+    safeSet(starKey(), String(stars));
     renderStars();
     const counter = document.getElementById('star-counter');
     if (counter) {
@@ -240,6 +242,11 @@
     }
   }
   document.addEventListener('click', () => { setTimeout(scanForFeedback, 40); });
+  window.addEventListener('worksheet:profile-changed', event => {
+    activeProfile = event.detail.id;
+    stars = parseInt(safeGet(starKey(), '0'), 10) || 0;
+    renderStars();
+  });
 
   /* ---------- App navigation ---------- */
   function showLevel(n) {

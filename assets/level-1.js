@@ -22,7 +22,8 @@
   let mathChecked = false;
 
   function genMathProblems(op, count) {
-    mathProblems = WorksheetCore.generate(1, op, count);
+    const challenge = Number(document.getElementById('l1-section-math').dataset.challenge);
+    mathProblems = challenge ? WorksheetCore.getChallenge(1, op, challenge) : WorksheetCore.generate(1, op, count);
     mathChecked = false;
     document.getElementById('l1-mathReveal').disabled = true;
     renderMath();
@@ -34,7 +35,18 @@
     mathProblems.forEach((p, i) => {
       const div = document.createElement('div');
       div.className = 'problem';
-      div.innerHTML = `${i + 1}. ${p.a} ${p.symbol} ${p.b} = <input class="ans" type="text" inputmode="numeric" data-index="${i}" autocomplete="off">`;
+      div.innerHTML = `${i + 1}. ${p.text || `${p.a} ${p.symbol} ${p.b} =`} <input class="ans" type="text" inputmode="numeric" data-index="${i}" autocomplete="off">`;
+      div.querySelector('input').setAttribute('aria-label',`Answer for question ${i+1}: ${p.text || `${p.a} ${p.symbol} ${p.b}`}`);
+      if (p.visualEmoji) {
+        const picture = document.createElement('div');
+        picture.className = 'math-pictograph';
+        picture.setAttribute('role','img');
+        picture.setAttribute('aria-label',`${p.a} objects ${p.symbol==='+'?'and':'with'} ${p.b} objects`);
+        const first = document.createElement('span'); first.textContent = p.visualEmoji.repeat(p.a);
+        const sign = document.createElement('b'); sign.textContent = p.symbol==='+' ? '+' : '−';
+        const second = document.createElement('span'); second.textContent = p.visualEmoji.repeat(p.b);
+        picture.append(first,sign,second);div.prepend(picture);
+      }
       grid.appendChild(div);
     });
   }

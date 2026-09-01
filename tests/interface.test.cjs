@@ -28,10 +28,37 @@ test('all five skill levels initialise, reject invalid answers and support retry
       d.getElementById(`l${level}-mathRegen`).click();
       assert.equal(section.querySelector('input.ans').readOnly,false);
       assert.ok(section.querySelector('.worked-example').textContent.length>30);
+      section.querySelector('.worksheet-mode').click();
       const select=d.getElementById(`l${level}-mathCount`);select.value='20';select.dispatchEvent(new w.Event('change',{bubbles:true}));
       assert.equal(w.WorksheetCore.worksheets[level].questions.length,20);
     }
   }finally{w.close();}
+});
+test('learner profiles separate progress and challenges unlock only after 3 of 5',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    assert.equal(d.querySelectorAll('#l1-section-math .challenge-select option').length,20);
+    assert.equal(d.querySelector('#l1-section-math .challenge-select option[value="2"]').disabled,true);
+    const added=w.WorksheetProgression.addProfile('Aisha');assert.equal(added.ok,true);
+    const section=d.getElementById('l1-section-math');
+    const inputs=[...section.querySelectorAll('input.ans')];
+    inputs.forEach((input,index)=>{input.value=index<3?input.dataset.answer:'999';});
+    d.getElementById('l1-mathCheck').click();
+    assert.equal(d.querySelector('#l1-section-math .challenge-select option[value="2"]').disabled,false);
+    assert.equal(w.WorksheetProgression.summary().mastered,1);
+    assert.ok(d.querySelector('.progress-dashboard').textContent.includes("Aisha's progress"));
+  }finally{w.close();}
+});
+test('curriculum labels, breadcrumbs, pictographs and spoken-instruction controls are present',()=>{
+  const dom=load(),d=dom.window.document;
+  try{
+    assert.ok(d.querySelectorAll('.strand-badge').length>=20);
+    assert.ok(d.querySelectorAll('.breadcrumb').length>=20);
+    assert.ok(d.querySelectorAll('.read-aloud').length>=20);
+    assert.ok(d.querySelector('#l1-section-math .math-pictograph'));
+    assert.match(d.querySelector('.level-card[data-level="3"] .level-title').textContent,/Grow/);
+    assert.equal(d.querySelectorAll('.placement-question').length,5);
+  }finally{dom.window.close();}
 });
 test('print builds blank, completed and answer-key copies without changing learner answers',()=>{
   const dom=load(),w=dom.window,d=w.document;

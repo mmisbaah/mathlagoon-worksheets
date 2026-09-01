@@ -29,7 +29,8 @@
   let mathChecked = false;
 
   function genMathProblems(op, count) {
-    mathProblems = WorksheetCore.generate(5, op, count);
+    const challenge = Number(document.getElementById('l5-section-math').dataset.challenge);
+    mathProblems = challenge ? WorksheetCore.getChallenge(5, op, challenge) : WorksheetCore.generate(5, op, count);
     mathChecked = false;
     document.getElementById('l5-mathReveal').disabled = true;
     renderMath();
@@ -46,7 +47,7 @@
       } else if (p.remainder !== null) {
         div.innerHTML = `${i + 1}. ${p.a} ${p.symbol} ${p.b} = <input class="ans" type="text" inputmode="numeric" data-index="${i}" data-field="q" autocomplete="off"> r <input class="ans" type="text" inputmode="numeric" data-index="${i}" data-field="r" autocomplete="off" style="width:30px;">`;
       } else {
-        div.innerHTML = `${i + 1}. ${p.a} ${p.symbol} ${p.b} = <input class="ans" type="text" inputmode="numeric" data-index="${i}" autocomplete="off">`;
+        div.innerHTML = `${i + 1}. ${p.text || `${p.a} ${p.symbol} ${p.b} =`} <input class="ans" type="text" inputmode="numeric" data-index="${i}" autocomplete="off">`;
       }
       grid.appendChild(div);
     });

@@ -106,6 +106,18 @@
       history.push({level:Number(section.id[1]),topic:section.querySelector('h2')?.textContent||'Practice',correct,total:inputs.length,date:new Date().toLocaleDateString()});
       history=history.slice(-100);try{localStorage.setItem('wh_practice_v2',JSON.stringify(history));}catch{}drawHistory();
     }
+    const problemRows=[...section.querySelectorAll('.problem,.shape-card,.wp-answer')];
+    const questionTotal=problemRows.length||inputs.length;
+    const questionCorrect=problemRows.length
+      ? problemRows.filter(row=>{const answers=[...row.querySelectorAll('input.ans')];return answers.length&&answers.every(input=>input.classList.contains('correct'));}).length
+      : correct;
+    window.dispatchEvent(new CustomEvent('worksheet:checked',{detail:{
+      sectionId:section.id,
+      level:Number(section.id[1]),
+      topic:section.querySelector('h2')?.textContent||'Practice',
+      correct:questionCorrect,
+      total:questionTotal
+    }}));
   }
   document.addEventListener('click',event=>{
     const button=event.target.closest('button');if(!button)return;
@@ -131,6 +143,7 @@
     section.querySelector('.worksheet-feedback').textContent='A fresh activity is ready.';
     const retry=section.querySelector('.retry-button');if(retry)retry.hidden=true;
     delete section.dataset.celebrated;
+    window.dispatchEvent(new CustomEvent('worksheet:reset',{detail:{sectionId:section.id}}));
   }
   document.addEventListener('change',event=>{
     const section=event.target.closest('.section');if(!section)return;
