@@ -18,9 +18,11 @@
   ];
   const read=(key,fallback)=>{try{const value=JSON.parse(localStorage.getItem(key));return value??fallback;}catch{return fallback;}};
   const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));}catch{}};
+  const cleanName=value=>String(value||'').normalize('NFKC').replace(/[^\p{L}\p{M}\p{N} .'-]/gu,'').replace(/\s+/g,' ').trim().slice(0,24);
   const make=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
   let profiles=read(PROFILE_KEY,[{id:'learner-1',name:'My learner'}]);
   if(!Array.isArray(profiles)||!profiles.length)profiles=[{id:'learner-1',name:'My learner'}];
+  profiles=profiles.map((profile,index)=>({id:typeof profile.id==='string'?profile.id:`learner-${index+1}`,name:cleanName(profile.name)||`Learner ${index+1}`})).slice(0,20);
   let activeId=localStorage.getItem(ACTIVE_KEY)||profiles[0].id;
   if(!profiles.some(profile=>profile.id===activeId))activeId=profiles[0].id;
   let records=read(PROGRESS_KEY,{});
@@ -32,6 +34,28 @@
     return {attempts:record.attempts.length,mastered:Object.keys(record.mastered).length,perfect:record.attempts.filter(item=>item.correct===item.total&&item.total>0).length,byTopic};
   }
   function save(){write(PROFILE_KEY,profiles);write(PROGRESS_KEY,records);localStorage.setItem(ACTIVE_KEY,activeId);}
+  function backupObject(){
+    const stars={};profiles.forEach(profile=>{stars[profile.id]=Number(localStorage.getItem('wh_stars_'+profile.id)||0);});
+    return {schemaVersion:1,exportedAt:new Date().toISOString(),profiles:profiles.map(profile=>({...profile})),records:JSON.parse(JSON.stringify(records)),stars};
+  }
+  function validateBackup(data){
+    if(!data||data.schemaVersion!==1||!Array.isArray(data.profiles)||!data.records||typeof data.records!=='object')throw new Error('This is not a Worksheet Hub progress backup.');
+    if(!data.profiles.length||data.profiles.length>20)throw new Error('The backup has an invalid number of learner profiles.');
+    data.profiles.forEach(profile=>{if(typeof profile.id!=='string'||typeof profile.name!=='string'||cleanName(profile.name).length<2||cleanName(profile.name)!==profile.name.trim())throw new Error('The backup contains an invalid learner profile.');});
+    const awardIds=new Set(awards.map(([id])=>id));
+    Object.values(data.records).forEach(record=>{if(!record||!Array.isArray(record.attempts)||record.attempts.length>500||!record.mastered||!record.unlocked||!Array.isArray(record.awards)||record.awards.some(id=>!awardIds.has(id)))throw new Error('The backup contains invalid progress data.');record.attempts.forEach(item=>{if(!Number.isFinite(item.level)||item.level<1||item.level>5||typeof item.op!=='string'||!/^[a-z-]{2,20}$/.test(item.op)||!Number.isFinite(item.challenge)||item.challenge<1||item.challenge>20||!Number.isFinite(item.correct)||!Number.isFinite(item.total)||item.correct<0||item.total<0||item.correct>item.total)throw new Error('The backup contains an invalid practice result.');});});
+    return true;
+  }
+  function importBackup(data){
+    validateBackup(data);const imported=[];
+    data.profiles.forEach(profile=>{
+      const sourceId=profile.id,newId=`learner-${Date.now().toString(36)}-${imported.length}`;
+      let name=cleanName(profile.name);if(profiles.some(item=>item.name.toLowerCase()===name.toLowerCase()))name=cleanName(`${name} restored`);
+      profiles.push({id:newId,name});records[newId]=JSON.parse(JSON.stringify(data.records[sourceId]||{attempts:[],mastered:{},unlocked:{},awards:[]}));
+      localStorage.setItem('wh_stars_'+newId,String(Math.max(0,Number(data.stars?.[sourceId])||0)));imported.push(newId);
+    });
+    activeId=imported[0];save();root.dispatchEvent(new CustomEvent('worksheet:profile-changed',{detail:{id:activeId}}));renderAll();return imported.length;
+  }
   function evaluateAwards(){
     const record=profileRecord(),stats=summary(),newAwards=[];
     awards.forEach(([id,title,test])=>{if(test(stats)&&!record.awards.includes(id)){record.awards.push(id);newAwards.push(title);}});
@@ -50,7 +74,7 @@
     renderAll();
   }
   function addProfile(name){
-    const clean=String(name||'').trim().replace(/\s+/g,' ').slice(0,24);
+    const clean=cleanName(name);
     if(clean.length<2)return {ok:false,message:'Enter a learner name with at least 2 letters.'};
     if(profiles.some(profile=>profile.name.toLowerCase()===clean.toLowerCase()))return {ok:false,message:'That learner already exists.'};
     const id=`learner-${Date.now().toString(36)}`;profiles.push({id,name:clean});save();setActive(id);return {ok:true,id};
@@ -144,13 +168,25 @@
     let dashboard=box.querySelector('.progress-dashboard');if(!dashboard){dashboard=make('div','progress-dashboard');box.append(dashboard);}
     const stats=summary(),record=profileRecord(),profile=profiles.find(item=>item.id===activeId);
     const recent=record.attempts.slice(-5),weak=recent.filter(item=>item.correct<3).at(-1),next=weak?`Repeat Level ${weak.level} ${weak.op}, Challenge ${weak.challenge}.`:'Continue the next unlocked challenge.';
-    dashboard.innerHTML=`<h3>${profile.name}'s progress</h3><div class="progress-stats"><span><b>${stats.attempts}</b> attempts</span><span><b>${stats.mastered}</b> mastered</span><span><b>${record.awards.length}/20</b> awards</span></div><p><strong>Recommended next step:</strong> ${next}</p><button type="button" class="open-recommendation">Open recommended practice</button><div class="award-grid" aria-label="Awards">${awards.map(([id,title])=>`<span class="${record.awards.includes(id)?'earned':''}" title="${title}">${record.awards.includes(id)?'🏅':'○'} ${title}</span>`).join('')}</div>`;
+    dashboard.innerHTML=`<h3>${profile.name}'s progress</h3><div class="progress-stats"><span><b>${stats.attempts}</b> attempts</span><span><b>${stats.mastered}</b> mastered</span><span><b>${record.awards.length}/20</b> awards</span></div><p><strong>Recommended next step:</strong> ${next}</p><div class="parent-actions"><button type="button" class="open-recommendation">Open recommended practice</button><button type="button" class="print-progress">Print progress report</button><button type="button" class="download-progress">Download backup</button><label class="restore-progress">Restore backup<input type="file" accept="application/json,.json"></label></div><p class="backup-note">Backups contain learner names and practice history. Keep the downloaded file private. Restoring adds profiles without deleting current progress.</p><p class="backup-status" role="status" aria-live="polite"></p><div class="award-grid" aria-label="Awards">${awards.map(([id,title])=>`<span class="${record.awards.includes(id)?'earned':''}" title="${title}">${record.awards.includes(id)?'🏅':'○'} ${title}</span>`).join('')}</div>`;
     dashboard.querySelector('.open-recommendation').addEventListener('click',()=>{
       const target=weak||{level:1,op:'add',challenge:1};
       document.querySelector(`.level-card[data-level="${target.level}"]`)?.click();
       document.querySelector(`#level-${target.level} .card[data-target$="-section-math"]`)?.click();
       const operationSelect=document.getElementById(`l${target.level}-mathOp`);if(operationSelect&&[...operationSelect.options].some(option=>option.value===target.op)){operationSelect.value=target.op;operationSelect.dispatchEvent(new Event('change',{bubbles:true}));}
       setTimeout(()=>{const challengeSelect=document.querySelector(`#l${target.level}-section-math .challenge-select`);if(challengeSelect){challengeSelect.value=String(target.challenge);challengeSelect.dispatchEvent(new Event('change',{bubbles:true}));}},0);
+    });
+    dashboard.querySelector('.download-progress').addEventListener('click',()=>{
+      const blob=new Blob([JSON.stringify(backupObject(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`worksheet-hub-progress-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);
+    });
+    dashboard.querySelector('.restore-progress input').addEventListener('change',event=>{
+      const file=event.target.files?.[0],status=dashboard.querySelector('.backup-status');if(!file)return;if(file.size>2_000_000){status.textContent='That backup file is too large.';event.target.value='';return;}
+      const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(String(reader.result));validateBackup(data);if(!confirm('Restore these learner profiles? Current profiles will be kept.'))return;const count=importBackup(data);status.textContent=`Restored ${count} learner ${count===1?'profile':'profiles'}.`;}catch(error){status.textContent=error.message;}finally{event.target.value='';}};reader.onerror=()=>{status.textContent='The backup file could not be read.';};reader.readAsText(file);
+    });
+    dashboard.querySelector('.print-progress').addEventListener('click',()=>{
+      const host=make('main','progress-report');host.id='progress-report';const earned=awards.filter(([id])=>record.awards.includes(id)).map(([,title])=>title);
+      host.innerHTML=`<header><h1>Worksheet Hub progress report</h1><p>${profile.name} · ${new Date().toLocaleDateString()}</p></header><section><h2>Summary</h2><p>${stats.attempts} attempts · ${stats.mastered} challenges mastered · ${record.awards.length}/20 awards</p><h2>Recommended next step</h2><p>${next}</p><h2>Recent practice</h2><table><thead><tr><th>Level</th><th>Skill</th><th>Challenge</th><th>Score</th></tr></thead><tbody>${record.attempts.slice(-10).reverse().map(item=>`<tr><td>${item.level}</td><td>${item.op}</td><td>${item.challenge}</td><td>${item.correct}/${item.total}</td></tr>`).join('')||'<tr><td colspan="4">No checked challenges yet.</td></tr>'}</tbody></table><h2>Awards earned</h2><p>${earned.join(' · ')||'No awards earned yet.'}</p></section><footer>Practice history is stored on this device and is not a school-grade assessment.</footer>`;
+      document.body.append(host);document.body.classList.add('printing-report');const clean=()=>{host.remove();document.body.classList.remove('printing-report');};root.addEventListener('afterprint',clean,{once:true});root.print();
     });
   }
   function renderAll(){
@@ -172,5 +208,5 @@
     renderAll();
   });
   renderAll();
-  root.WorksheetProgression={addProfile,setActive,recordAttempt,summary,awards,levelNames};
+  root.WorksheetProgression={addProfile,setActive,recordAttempt,summary,backupObject,validateBackup,importBackup,awards,levelNames};
 })(window);

@@ -1,0 +1,13 @@
+{
+  "name": "Worksheet Hub — Math Lagoon",
+  "short_name": "Worksheets",
+  "description": "Maths, English and enrichment practice with printable worksheets for young learners.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e9fbf7",
+  "theme_color": "#08798a",
+  "icons": [
+    {"src":"/assets/app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

@@ -60,6 +60,25 @@ test('curriculum labels, breadcrumbs, pictographs and spoken-instruction control
     assert.equal(d.querySelectorAll('.placement-question').length,5);
   }finally{dom.window.close();}
 });
+test('progress backups validate, restore without deleting profiles, and reject unsafe data',()=>{
+  const dom=load(),w=dom.window;
+  try{
+    assert.equal(w.WorksheetProgression.addProfile('Aisha').ok,true);
+    w.WorksheetProgression.recordAttempt({level:1,correct:4,total:5},1,'add');
+    const backup=w.WorksheetProgression.backupObject();assert.equal(w.WorksheetProgression.validateBackup(backup),true);
+    assert.equal(w.WorksheetProgression.importBackup(backup),2);
+    assert.equal(w.WorksheetProgression.summary().mastered,0);
+    const unsafe=structuredClone(backup);unsafe.profiles[0].name='<img src=x>';
+    assert.throws(()=>w.WorksheetProgression.validateBackup(unsafe),/invalid learner profile/);
+  }finally{w.close();}
+});
+test('parent progress report creates a printable summary and cleans up after printing',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    d.querySelector('.print-progress').click();assert.ok(d.body.classList.contains('printing-report'));assert.ok(d.getElementById('progress-report').textContent.includes('Worksheet Hub progress report'));
+    w.dispatchEvent(new w.Event('afterprint'));assert.equal(d.getElementById('progress-report'),null);assert.equal(d.body.classList.contains('printing-report'),false);
+  }finally{w.close();}
+});
 test('print builds blank, completed and answer-key copies without changing learner answers',()=>{
   const dom=load(),w=dom.window,d=w.document;
   try{
