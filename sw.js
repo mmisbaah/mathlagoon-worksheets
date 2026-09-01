@@ -1,4 +1,4 @@
-const CACHE='worksheet-hub-v3';
+const CACHE='worksheet-hub-v4';
 const APP_SHELL=[
   '/', '/index.html', '/manifest.webmanifest',
   '/assets/activities.css','/assets/interface.css','/assets/print.css','/assets/app-icon.svg',
@@ -12,6 +12,10 @@ self.addEventListener('fetch',event=>{
   if(request.method!=='GET'||url.origin!==self.location.origin)return;
   if(request.mode==='navigate'){
     event.respondWith(fetch(request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put('/index.html',copy));return response;}).catch(()=>caches.match('/index.html')));
+    return;
+  }
+  if(['script','style'].includes(request.destination)){
+    event.respondWith(fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));}return response;}).catch(()=>caches.match(request)));
     return;
   }
   event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));}return response;})));

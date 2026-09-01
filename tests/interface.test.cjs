@@ -40,7 +40,12 @@ test('no login or learner profile is shown and every challenge and worksheet siz
     assert.equal(d.querySelector('.learner-panel'),null);
     assert.equal(d.querySelectorAll('#l1-section-math .challenge-select option').length,20);
     assert.ok([...d.querySelectorAll('.challenge-select option')].every(option=>!option.disabled&&!option.textContent.includes('🔒')));
-    for(let level=1;level<=5;level++)assert.equal(d.getElementById(`l${level}-mathCount`).disabled,false);
+    for(let level=1;level<=5;level++){
+      const section=d.getElementById(`l${level}-section-math`),controls=section.querySelector('.controls');
+      assert.equal(d.getElementById(`l${level}-mathCount`).disabled,false);
+      assert.equal(controls.contains(section.querySelector('.challenge-select')),true);
+      assert.equal(section.querySelector('.challenge-path').previousElementSibling,null);
+    }
     assert.ok(d.querySelector('.progress-dashboard').textContent.includes('Your progress'));
   }finally{w.close();}
 });

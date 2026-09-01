@@ -133,10 +133,10 @@
   function operation(section){const level=Number(section.id[1]);return document.getElementById(`l${level}-mathOp`)?.value||'add';}
   function installChallengePath(section){
     const level=Number(section.id[1]),panel=make('section','challenge-path');
-    const heading=make('div','challenge-heading'),title=make('strong','','Practice path'),meta=make('span','challenge-meta'),select=make('select','challenge-select'),mode=make('button','worksheet-mode','Custom printable');
+    const label=make('label','challenge-control','Challenge:'),meta=make('span','challenge-meta'),select=make('select','challenge-select'),mode=make('button','worksheet-mode','Custom size');
     select.setAttribute('aria-label','Choose challenge');mode.type='button';
     for(let n=1;n<=20;n++){const option=make('option','',`Challenge ${n}`);option.value=String(n);select.append(option);}
-    heading.append(title,meta);panel.append(heading,select,mode);section.querySelector('.section-sub')?.after(panel);
+    label.append(select);panel.append(label,meta,mode);section.querySelector('.controls')?.prepend(panel);
     let custom=false;
     function refresh(){
       const op=operation(section),key=sectionKey(level,op),record=profileRecord(),current=Number(section.dataset.challenge||1);
@@ -146,7 +146,7 @@
       const band=Number(select.value)<=7?'Guided':Number(select.value)<=14?'Independent':'Reasoning';
       meta.textContent=custom?'Choose any worksheet size':`${done}/20 completed · ${band} · all challenges are open`;
       const count=document.getElementById(`l${level}-mathCount`);if(count)count.disabled=false;
-      panel.classList.toggle('custom-mode',custom);mode.textContent=custom?'Return to challenges':'Custom printable';
+      panel.classList.toggle('custom-mode',custom);mode.textContent=custom?'Use challenge size':'Custom size';
     }
     function loadChallenge(n){
       custom=false;section.dataset.challenge=String(n);const op=operation(section);core.getChallenge(level,op,n);
