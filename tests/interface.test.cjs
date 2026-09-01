@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..');
 function load(){
   const dom=new JSDOM(fs.readFileSync(path.join(root,'index.html'),'utf8'),{url:'https://worksheets.mathlagoon.com/',runScripts:'outside-only',pretendToBeVisual:true});
   dom.window.print=()=>{};
-  for(const script of dom.window.document.querySelectorAll('script[src]'))dom.window.eval(fs.readFileSync(path.join(root,script.getAttribute('src')),'utf8'));
+  for(const script of dom.window.document.querySelectorAll('script[src]'))dom.window.eval(fs.readFileSync(path.join(root,script.getAttribute('src').split('?')[0]),'utf8'));
   return dom;
 }
 test('all five skill levels initialise, reject invalid answers and support retry',()=>{

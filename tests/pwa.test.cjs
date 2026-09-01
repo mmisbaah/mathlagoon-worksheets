@@ -15,3 +15,7 @@ test('service worker caches the complete app shell and cleans older versions',()
 test('build copies offline entrypoints',()=>{
   const build=fs.readFileSync(path.join(root,'scripts/build.cjs'),'utf8');assert.match(build,/manifest\.webmanifest/);assert.match(build,/sw\.js/);
 });
+test('versioned critical assets bypass older offline caches',()=>{
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  for(const asset of ['assets/interface.css?v=5','assets/core.js?v=5','assets/progression.js?v=5'])assert.ok(html.includes(asset),asset);
+});
