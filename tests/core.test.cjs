@@ -16,8 +16,8 @@ for(let level=1;level<=5;level++)for(const op of operations[level-1])test(`Level
       const expected=core.expectedAnswer(p);
       assert.ok(Math.abs(p.answer-expected)<1e-8);
       assert.ok(core.explanation(p).length>=2);
-      if(level===1){assert.ok(p.a<=10&&p.b<=10);assert.ok(p.answer>=0&&p.answer<=10);}
-      if(level===3&&op==='mul')assert.ok(p.a<=10&&p.b<=10);
+      if(level===1){assert.ok(p.a>=2&&p.a<=20&&p.b>=2&&p.b<=20);assert.ok(p.answer>=2&&p.answer<=20);}
+      if(level===3&&op==='mul')assert.ok(p.a>=2&&p.a<=12&&p.b>=2&&p.b<=12);
       if(level===4&&op==='div')assert.ok(p.a>=100&&p.a<=999&&p.b>=2&&p.b<=9);
     }
   }
@@ -25,6 +25,11 @@ for(let level=1;level<=5;level++)for(const op of operations[level-1])test(`Level
 test('arithmetic challenge banks use equations only, with no sentence problems',()=>{
   for(let level=1;level<=5;level++)for(const op of operations[level-1])for(const p of core.createChallengeBank(level,op).flat()){
     assert.doesNotMatch(p.text||'',/[?]|\b(how|what|which|Kandu|basket|boat|shells|fish)\b/i);
+  }
+});
+test('basic operations put all numbers on the left and never use zero or one',()=>{
+  for(let level=1;level<=5;level++)for(const op of operations[level-1].filter(value=>['add','sub','mul','div'].includes(value)))for(const p of core.createChallengeBank(level,op).flat()){
+    assert.equal(p.text,null);assert.ok(![0,1].includes(p.a));assert.ok(![0,1].includes(p.b));assert.ok(![0,1].includes(p.answer));
   }
 });
 test('invalid generator requests fail explicitly',()=>{

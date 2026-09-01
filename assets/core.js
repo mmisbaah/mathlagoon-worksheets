@@ -16,8 +16,7 @@
   }
   function key(p) {
     if (p.text) return p.text;
-    const pair = ['+','&times;'].includes(p.symbol) ? [p.a,p.b].sort((a,b)=>a-b) : [p.a,p.b];
-    return `${p.symbol}:${pair.join(':')}`;
+    return `${p.symbol}:${[p.a,p.b].join(':')}`;
   }
   function setupKey(p){return `${p.symbol||p.operation||'text'}:${p.variant||p.grouped||'direct'}:${p.a??p.quantity??''}:${p.b??p.percent??''}:${p.c??''}`;}
   const worksheets = {};
@@ -37,58 +36,41 @@
     const pool = new Map();
     const add = p => pool.set(key(p), {...p, remainder:p.remainder ?? null, text:p.text ?? null});
     if (op==='add' || op==='sub') {
-      const max = [0,10,99,999,999][level];
-      const min = level===1 ? 0 : level===2 ? 10 : level===3 ? 100 : 10;
+      const max = [0,20,99,999,999][level];
+      const min = level===1 ? 2 : level===2 ? 10 : level===3 ? 100 : 20;
       // Exhaustive small pools prevent retry loops when requesting many questions.
       const step = level>=3 ? 7 : 1;
       for(let a=min;a<=max;a+=step) for(let b=min;b<=max;b+=step) {
-        if(op==='sub' && b>a) continue;
-        if(level===1 && op==='add' && a+b>10) continue;
+        if(op==='sub' && (b>a || a-b<=1)) continue;
+        if(level===1 && op==='add' && a+b>20) continue;
         const divisor = level===4?10:1;
         const problem={a:a/divisor,b:b/divisor,symbol:op==='add'?'+':'&minus;',answer:(op==='add'?a+b:a-b)/divisor};
-        if(level===1){
-          const emoji=CONTEXT_EMOJI[(a+b)%CONTEXT_EMOJI.length];
-          add({...problem,visualEmoji:emoji,variant:'direct'});
-          if(op==='add'){
-            add({...problem,text:`□ + ${b} = ${a+b}`,answer:a,variant:'missingFirst'});
-            add({...problem,text:`${a} + □ = ${a+b}`,answer:b,variant:'missingSecond'});
-          } else {
-            add({...problem,text:`□ &minus; ${b} = ${a-b}`,answer:a,variant:'missingFirst'});
-            add({...problem,text:`${a} &minus; □ = ${a-b}`,answer:b,variant:'missingSecond'});
-          }
-        } else add(problem);
+        if(level===1) add({...problem,visualEmoji:CONTEXT_EMOJI[(a+b)%CONTEXT_EMOJI.length],variant:'direct'});
+        else add(problem);
       }
     } else if(op==='mul') {
-      const lo=level===3?0:level===4?10:100, hi=level===3?10:level===4?99:999;
-      for(let a=lo;a<=hi;a+=(level===5?7:1)) for(let b=level===3?0:10;b<=(level===3?10:99);b++){
+      const lo=level===3?2:level===4?10:100, hi=level===3?12:level===4?99:999;
+      for(let a=lo;a<=hi;a+=(level===5?7:1)) for(let b=level===3?2:10;b<=(level===3?12:99);b++){
         const problem={a,b,symbol:'&times;',answer:a*b};
-        if(level===3){
-          add({...problem,variant:'direct'});
-          add({...problem,text:`□ &times; ${b} = ${a*b}`,answer:a,variant:'missingFirst'});
-          add({...problem,text:`${a} &times; □ = ${a*b}`,answer:b,variant:'missingSecond'});
-        } else add(problem);
+        add({...problem,variant:'direct'});
       }
     } else if(op==='div') {
-      for(let b=2;b<=(level===3?10:level===4?9:40);b++) for(let q=level===3?0:12;q<=(level===3?10:60);q++) {
+      for(let b=2;b<=(level===3?12:level===4?9:40);b++) for(let q=level===3?2:12;q<=(level===3?12:60);q++) {
         const remainder=level===3?null:(q+b) % b;
         const a=b*q+(remainder||0);
         if(level===4 && (a<100 || a>999)) continue;
         const problem={a,b,symbol:'&divide;',answer:q,remainder};
-        if(level===3){
-          add({...problem,variant:'direct'});
-          add({...problem,text:`□ &divide; ${b} = ${q}`,answer:a,variant:'missingFirst'});
-          add({...problem,text:`${a} &divide; □ = ${q}`,answer:b,variant:'missingSecond'});
-        } else add(problem);
+        add({...problem,variant:'direct'});
       }
     } else if(op==='percent') {
       for(const p of [5,10,15,20,25,50,75]) for(let n=20;n<=500;n+=20)
         add({text:`${p}% of ${n} =`,answer:p*n/100,percent:p,quantity:n});
     } else if(op==='negative') {
       for(let a=-15;a<=15;a++) for(let b=-15;b<=15;b++) for(const sign of ['+','−'])
-        add({text:`(${a}) ${sign} (${b})`,answer:sign==='+'?a+b:a-b,a,b,operation:sign});
+        add({text:`(${a}) ${sign} (${b}) =`,answer:sign==='+'?a+b:a-b,a,b,operation:sign});
     } else {
       for(let a=2;a<=12;a++) for(let b=2;b<=10;b++) for(let c=2;c<=10;c++)
-        add({text:level===4?`${a} + ${b} &times; ${c}`:`(${a} + ${b}) &times; ${c}`,answer:level===4?a+b*c:(a+b)*c,a,b,c,grouped:level===5});
+        add({text:level===4?`${a} + ${b} &times; ${c} =`:`(${a} + ${b}) &times; ${c} =`,answer:level===4?a+b*c:(a+b)*c,a,b,c,grouped:level===5});
     }
     return [...pool.values()];
   }
