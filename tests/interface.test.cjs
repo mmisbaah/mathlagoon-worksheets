@@ -45,6 +45,10 @@ test('no login or learner profile is shown and every challenge and worksheet siz
       assert.equal(d.getElementById(`l${level}-mathCount`).disabled,false);
       assert.equal(controls.contains(section.querySelector('.challenge-select')),true);
       assert.equal(section.querySelector('.challenge-path').previousElementSibling,null);
+      assert.equal(section.classList.contains('compact-worksheet'),true);
+      assert.equal(section.querySelector('.worked-example').hidden,true);
+      assert.equal(section.querySelector('.curriculum-note').hidden,true);
+      const help=section.querySelector('.help-toggle');assert.ok(help);help.click();assert.equal(section.querySelector('.worked-example').hidden,false);help.click();
     }
     assert.ok(d.querySelector('.progress-dashboard').textContent.includes('Your progress'));
   }finally{w.close();}

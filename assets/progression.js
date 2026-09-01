@@ -128,6 +128,14 @@
         const words=[title,section.querySelector('.section-sub')?.textContent,section.querySelector('.worked-example')?.textContent,question].filter(Boolean).join('. ');
         root.speechSynthesis.speak(new SpeechSynthesisUtterance(words));
       });controls.append(speak);
+      if(section.id.endsWith('-math')){
+        section.classList.add('compact-worksheet');
+        const example=section.querySelector('.worked-example');
+        note.hidden=true;if(example)example.hidden=true;
+        const help=make('button','help-toggle','Show help');help.type='button';help.setAttribute('aria-expanded','false');
+        help.addEventListener('click',()=>{const opening=Boolean(note.hidden);note.hidden=!opening;if(example)example.hidden=!opening;help.textContent=opening?'Hide help':'Show help';help.setAttribute('aria-expanded',String(opening));});
+        controls.append(help);
+      }
     });
   }
   function operation(section){const level=Number(section.id[1]);return document.getElementById(`l${level}-mathOp`)?.value||'add';}
