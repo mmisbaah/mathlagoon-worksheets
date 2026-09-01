@@ -34,19 +34,14 @@ test('all five skill levels initialise, reject invalid answers and support retry
     }
   }finally{w.close();}
 });
-test('learner profiles separate progress and challenges unlock only after 3 of 5',()=>{
+test('no login or learner profile is shown and every challenge and worksheet size is open',()=>{
   const dom=load(),w=dom.window,d=w.document;
   try{
+    assert.equal(d.querySelector('.learner-panel'),null);
     assert.equal(d.querySelectorAll('#l1-section-math .challenge-select option').length,20);
-    assert.equal(d.querySelector('#l1-section-math .challenge-select option[value="2"]').disabled,true);
-    const added=w.WorksheetProgression.addProfile('Aisha');assert.equal(added.ok,true);
-    const section=d.getElementById('l1-section-math');
-    const inputs=[...section.querySelectorAll('input.ans')];
-    inputs.forEach((input,index)=>{input.value=index<3?input.dataset.answer:'999';});
-    d.getElementById('l1-mathCheck').click();
-    assert.equal(d.querySelector('#l1-section-math .challenge-select option[value="2"]').disabled,false);
-    assert.equal(w.WorksheetProgression.summary().mastered,1);
-    assert.ok(d.querySelector('.progress-dashboard').textContent.includes("Aisha's progress"));
+    assert.ok([...d.querySelectorAll('.challenge-select option')].every(option=>!option.disabled&&!option.textContent.includes('🔒')));
+    for(let level=1;level<=5;level++)assert.equal(d.getElementById(`l${level}-mathCount`).disabled,false);
+    assert.ok(d.querySelector('.progress-dashboard').textContent.includes('Your progress'));
   }finally{w.close();}
 });
 test('curriculum labels, breadcrumbs, pictographs and spoken-instruction controls are present',()=>{
@@ -56,20 +51,19 @@ test('curriculum labels, breadcrumbs, pictographs and spoken-instruction control
     assert.ok(d.querySelectorAll('.breadcrumb').length>=20);
     assert.ok(d.querySelectorAll('.read-aloud').length>=20);
     assert.ok(d.querySelector('#l1-section-math .math-pictograph'));
-    assert.match(d.querySelector('.level-card[data-level="3"] .level-title').textContent,/Grow/);
+    assert.match(d.querySelector('.level-card[data-level="3"] .level-title').textContent,/Advanced/);
     assert.equal(d.querySelectorAll('.placement-question').length,5);
   }finally{dom.window.close();}
 });
-test('progress backups validate, restore without deleting profiles, and reject unsafe data',()=>{
+test('single-user progress backups validate, merge and reject malformed data',()=>{
   const dom=load(),w=dom.window;
   try{
-    assert.equal(w.WorksheetProgression.addProfile('Aisha').ok,true);
     w.WorksheetProgression.recordAttempt({level:1,correct:4,total:5},1,'add');
     const backup=w.WorksheetProgression.backupObject();assert.equal(w.WorksheetProgression.validateBackup(backup),true);
-    assert.equal(w.WorksheetProgression.importBackup(backup),2);
-    assert.equal(w.WorksheetProgression.summary().mastered,0);
-    const unsafe=structuredClone(backup);unsafe.profiles[0].name='<img src=x>';
-    assert.throws(()=>w.WorksheetProgression.validateBackup(unsafe),/invalid learner profile/);
+    assert.equal(w.WorksheetProgression.importBackup(backup),1);
+    assert.equal(w.WorksheetProgression.summary().mastered,1);
+    const unsafe=structuredClone(backup);unsafe.record.attempts[0].level=99;
+    assert.throws(()=>w.WorksheetProgression.validateBackup(unsafe),/invalid practice result/);
   }finally{w.close();}
 });
 test('parent progress report creates a printable summary and cleans up after printing',()=>{

@@ -47,46 +47,26 @@
         const divisor = level===4?10:1;
         const problem={a:a/divisor,b:b/divisor,symbol:op==='add'?'+':'&minus;',answer:(op==='add'?a+b:a-b)/divisor};
         if(level===1){
-          CONTEXTS.forEach((thing,index)=>{
-            if(op==='add'){
-              const total=a+b;
-              const variants=[
-                {...problem,text:`Kandu has ${things(thing,a)}. ${things(thing,b)} arrive. How many ${thing} now?`,variant:'total'},
-                {...problem,text:`Start at ${a} on a number line. Count on ${b}. Where do you land?`,variant:'countOn'},
-                {...problem,text:`Some ${thing} joined ${things(thing,b)} to make ${total}. How many ${thing} were there first?`,answer:a,variant:'missingStart'},
-                {...problem,text:`Kandu had ${things(thing,a)}. More arrived, making ${total}. How many more arrived?`,answer:b,variant:'missingChange'},
-                {...problem,text:`One basket has ${things(thing,a)} and another has ${things(thing,b)}. How many altogether?`,variant:'twoGroups'}
-              ];
-              add({...variants[index],context:index,visualEmoji:CONTEXT_EMOJI[index]});
-            } else {
-              const difference=a-b;
-              const variants=[
-                {...problem,text:`Kandu has ${things(thing,a)}. ${things(thing,b)} are taken away. How many ${thing} remain?`,variant:'remain'},
-                {...problem,text:`Some ${thing} were here. After ${things(thing,b)} left, ${difference} remained. How many were here first?`,answer:a,variant:'missingStart'},
-                {...problem,text:`Kandu had ${things(thing,a)}. Some left and ${difference} remained. How many left?`,answer:b,variant:'missingChange'},
-                {...problem,text:`One basket has ${things(thing,a)} and another has ${things(thing,b)}. How many more are in the first basket?`,variant:'difference'},
-                {...problem,text:`Start at ${a} on a number line. Count back ${b}. Where do you land?`,variant:'countBack'}
-              ];
-              add({...variants[index],context:index,visualEmoji:CONTEXT_EMOJI[index]});
-            }
-          });
+          const emoji=CONTEXT_EMOJI[(a+b)%CONTEXT_EMOJI.length];
+          add({...problem,visualEmoji:emoji,variant:'direct'});
+          if(op==='add'){
+            add({...problem,text:`□ + ${b} = ${a+b}`,answer:a,variant:'missingFirst'});
+            add({...problem,text:`${a} + □ = ${a+b}`,answer:b,variant:'missingSecond'});
+          } else {
+            add({...problem,text:`□ &minus; ${b} = ${a-b}`,answer:a,variant:'missingFirst'});
+            add({...problem,text:`${a} &minus; □ = ${a-b}`,answer:b,variant:'missingSecond'});
+          }
         } else add(problem);
       }
     } else if(op==='mul') {
       const lo=level===3?0:level===4?10:100, hi=level===3?10:level===4?99:999;
       for(let a=lo;a<=hi;a+=(level===5?7:1)) for(let b=level===3?0:10;b<=(level===3?10:99);b++){
         const problem={a,b,symbol:'&times;',answer:a*b};
-        if(level===3)CONTEXTS.forEach((thing,index)=>{
-          const variants=[
-            [`There are ${a} baskets with ${b} ${thing} in each. How many ${thing} altogether?`,'equalGroups'],
-            [`Draw ${a} rows of ${b} ${thing}. How many are in the array?`,'array'],
-            [`Add ${b}, ${a} times. What total do you get?`,'repeatedAddition'],
-            [`A small boat carries ${b} boxes. How many boxes do ${a} identical boats carry?`,'scale'],
-            [`There are ${a} groups and ${b} ${thing} in every group. Use multiplication to find the total.`,'model']
-          ];
-          add({...problem,text:variants[index][0],variant:variants[index][1],context:index});
-        });
-        else add(problem);
+        if(level===3){
+          add({...problem,variant:'direct'});
+          add({...problem,text:`□ &times; ${b} = ${a*b}`,answer:a,variant:'missingFirst'});
+          add({...problem,text:`${a} &times; □ = ${a*b}`,answer:b,variant:'missingSecond'});
+        } else add(problem);
       }
     } else if(op==='div') {
       for(let b=2;b<=(level===3?10:level===4?9:40);b++) for(let q=level===3?0:12;q<=(level===3?10:60);q++) {
@@ -94,21 +74,15 @@
         const a=b*q+(remainder||0);
         if(level===4 && (a<100 || a>999)) continue;
         const problem={a,b,symbol:'&divide;',answer:q,remainder};
-        if(level===3)CONTEXTS.forEach((thing,index)=>{
-          const variants=[
-            [`Share ${a} ${thing} equally among ${b} children. How many does each child get?`,'sharing'],
-            [`Make groups of ${b} from ${a} ${thing}. How many groups can you make?`,'grouping'],
-            [`${b} equal groups contain ${a} ${thing}. How many are in each group?`,'inverse'],
-            [`What number multiplied by ${b} equals ${a}?`,'missingFactor'],
-            [`A crew shares ${a} supplies across ${b} boats equally. How many supplies go on each boat?`,'rate']
-          ];
-          add({...problem,text:variants[index][0],variant:variants[index][1],context:index});
-        });
-        else add(problem);
+        if(level===3){
+          add({...problem,variant:'direct'});
+          add({...problem,text:`□ &divide; ${b} = ${q}`,answer:a,variant:'missingFirst'});
+          add({...problem,text:`${a} &divide; □ = ${q}`,answer:b,variant:'missingSecond'});
+        } else add(problem);
       }
     } else if(op==='percent') {
       for(const p of [5,10,15,20,25,50,75]) for(let n=20;n<=500;n+=20)
-        add({text:`What is ${p}% of ${n}?`,answer:p*n/100,percent:p,quantity:n});
+        add({text:`${p}% of ${n} =`,answer:p*n/100,percent:p,quantity:n});
     } else if(op==='negative') {
       for(let a=-15;a<=15;a++) for(let b=-15;b<=15;b++) for(const sign of ['+','−'])
         add({text:`(${a}) ${sign} (${b})`,answer:sign==='+'?a+b:a-b,a,b,operation:sign});
@@ -129,13 +103,6 @@
     const selected=Array.from({length:needed},(_,index)=>ordered[Math.min(ordered.length-1,Math.floor(index*ordered.length/needed))]);
     const decorate=(problem,challenge,index)=>{
       const p={...problem},thing=CONTEXTS[(challenge+index)%CONTEXTS.length],band=challenge<=7?'Guided':challenge<=14?'Independent':'Reasoning';p.difficultyBand=band;
-      if(level>1&&challenge>=8){
-        if(p.text){p.text=challenge>=15?`${p.text} Check your answer with the inverse operation.`:p.text;return p;}
-        if(op==='add')p.text=challenge>=15?`A supply boat carried ${p.a} boxes and collected ${p.b} more. What total should the crew record?`:`Add ${p.a} shells to ${p.b} shells. How many shells altogether?`;
-        if(op==='sub')p.text=challenge>=15?`Kandu counted ${p.a} ${thing}, then used ${p.b}. How many remain, and what addition could check it?`:`Take ${p.b} away from ${p.a}. What remains?`;
-        if(op==='mul')p.text=challenge>=15?`A reef survey has ${p.a} equal groups of ${p.b} fish. Use repeated groups to find the total.`:`Find the total in ${p.a} groups of ${p.b}.`;
-        if(op==='div')p.text=challenge>=15?`Share ${p.a} ${thing} into groups of ${p.b}. How many full groups are made${p.remainder?' before '+p.remainder+' remain':''}?`:`How many groups of ${p.b} can be made from ${p.a}?`;
-      }
       return p;
     };
     const challenges=Array.from({length:challengeCount},(_,index)=>selected.slice(index*questionsPerChallenge,(index+1)*questionsPerChallenge).map((p,q)=>decorate(p,index+1,q)));
@@ -156,6 +123,8 @@
   function expectedAnswer(p){
     if(p.variant==='missingStart')return p.a;
     if(p.variant==='missingChange')return p.b;
+    if(p.variant==='missingFirst')return p.a;
+    if(p.variant==='missingSecond')return p.b;
     if(p.percent!==undefined)return p.quantity*p.percent/100;
     if(p.c!==undefined)return p.grouped?(p.a+p.b)*p.c:p.a+p.b*p.c;
     if(p.operation)return p.operation==='+'?p.a+p.b:p.a-p.b;
