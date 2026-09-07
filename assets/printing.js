@@ -7,8 +7,9 @@
     const modes=[['blank','Blank worksheet'],['completed','My completed worksheet']];
     if(controls.closest('.section').id.endsWith('-math'))modes.push(['key','Arithmetic answer key']);
     for(const [value,text] of modes){const option=document.createElement('option');option.value=value;option.textContent=text;select.append(option);}
-    label.append(select);controls.append(label);
-    const inkLabel=document.createElement('label');const ink=document.createElement('input');ink.type='checkbox';ink.className='ink-saving';ink.checked=true;inkLabel.append(ink,' Save ink');controls.append(inkLabel);
+    label.append(select);
+    const inkLabel=document.createElement('label');const ink=document.createElement('input');ink.type='checkbox';ink.className='ink-saving';ink.checked=true;inkLabel.append(ink,' Save ink');
+    const options=document.createElement('details');options.className='print-options';const summary=document.createElement('summary');summary.textContent='Print options';options.append(summary,label,inkLabel);controls.append(options);
   });
   function cleanup(){document.getElementById('print-host')?.remove();document.body.classList.remove('printing-worksheet');}
   window.addEventListener('afterprint',cleanup);
