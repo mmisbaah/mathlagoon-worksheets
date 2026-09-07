@@ -53,6 +53,22 @@ test('no login or learner profile is shown and every challenge and worksheet siz
     assert.ok(d.querySelector('.progress-dashboard').textContent.includes('Your progress'));
   }finally{w.close();}
 });
+test('selecting any level always opens that level home page',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    for(let level=1;level<=5;level++){
+      d.querySelector(`.level-card[data-level="${level}"]`).click();
+      const page=d.getElementById(`level-${level}`),home=d.getElementById(`l${level}-section-home`),math=d.getElementById(`l${level}-section-math`);
+      assert.equal(home.classList.contains('active'),true);
+      math.classList.add('active');home.classList.remove('active');
+      d.querySelector('[data-alllevels]').click();
+      d.querySelector(`.level-card[data-level="${level}"]`).click();
+      assert.equal(home.classList.contains('active'),true);
+      assert.equal(math.classList.contains('active'),false);
+      assert.equal(page.classList.contains('active-level'),true);
+    }
+  }finally{w.close();}
+});
 test('curriculum labels, breadcrumbs, pictographs and spoken-instruction controls are present',()=>{
   const dom=load(),d=dom.window.document;
   try{

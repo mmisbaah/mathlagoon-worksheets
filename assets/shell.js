@@ -250,9 +250,12 @@
 
   /* ---------- App navigation ---------- */
   function showLevel(n) {
+    const levelPage = document.getElementById('level-' + n);
+    levelPage.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+    levelPage.querySelector('#l' + n + '-section-home')?.classList.add('active');
     document.getElementById('app-home').style.display = 'none';
     document.querySelectorAll('.level-page').forEach(p => p.classList.remove('active-level'));
-    document.getElementById('level-' + n).classList.add('active-level');
+    levelPage.classList.add('active-level');
     if (n > progress) { progress = n; safeSet('wh_progress', String(progress)); }
     window.scrollTo(0, 0);
   }
