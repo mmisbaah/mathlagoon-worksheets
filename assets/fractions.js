@@ -7,10 +7,12 @@
     if(/^[-+]?\d+\/\d+$/.test(text)){const [n,d]=text.split('/').map(Number);return d?fraction(n,d):text;}
     const number=Number(text);return Number.isFinite(number)?String(number):text.toLowerCase();
   };
+  const valueOf=value=>{const text=String(value).trim();if(/^[-+]?\d+\/\d+$/.test(text)){const [n,d]=text.split('/').map(Number);return d?n/d:NaN;}return Number(text);};
+  const equivalent=(value,answer,strict=false)=>strict?String(value).trim()===String(answer):normalise(value)===normalise(answer)||(Number.isFinite(valueOf(value))&&Math.abs(valueOf(value)-valueOf(answer))<1e-9);
   const model=(n,d)=>`<div class="fraction-model" aria-label="${n} of ${d} equal parts shaded">${Array.from({length:d},(_,i)=>`<span class="${i<n?'shaded':''}"></span>`).join('')}</div>`;
   const questions=level=>Array.from({length:20},(_,i)=>{
     if(level===1){const d=i%2?4:2,n=(i%3)+1>d?1:(i%3)+1;return {prompt:`How many of the ${d} equal parts are shaded?`,answer:String(n),visual:model(n,d)};}
-    if(level===2){const d=[2,3,4,5,6][i%5],n=1+(i*2%(d-1));return {prompt:'Write the fraction shown.',answer:fraction(n,d),visual:model(n,d)};}
+    if(level===2){const d=[2,3,4,5,6][i%5],n=1+(i*2%(d-1));return {prompt:'Write the fraction shown.',answer:`${n}/${d}`,visual:model(n,d),strict:true};}
     if(level===3){const d=[2,3,4,5,6][i%5],n=1+(i%(d-1)),scale=2+(i%2);return {prompt:`Complete the equivalent fraction: ${n}/${d} = □/${d*scale}`,answer:String(n*scale),visual:model(n,d)};}
     if(level===4){const d=[4,6,8,10,12][i%5],n=2*(1+(i%Math.max(1,d/2-1)));if(i%2===0)return {prompt:`Simplify ${n}/${d}.`,answer:fraction(n,d)};const a=1+(i%Math.max(1,d/2-1)),b=1+((i+2)%Math.max(1,d/2-1));return {prompt:`Calculate ${a}/${d} + ${b}/${d}. Simplify your answer.`,answer:fraction(a+b,d)};}
     if(i%2===0){const d=[2,3,4,5,8][i%5],a=1+(i%(d-1)),e=[3,4,5,6,10][i%5],b=1+((i+1)%(e-1));return {prompt:`Calculate ${a}/${d} + ${b}/${e}. Simplify your answer.`,answer:fraction(a*e+b*d,d*e)};}
@@ -25,11 +27,11 @@
     let offset=0;
     const render=()=>{
       const count=Number(section.querySelector('select').value),bank=questions(level),grid=section.querySelector('.fraction-grid');grid.innerHTML='';
-      for(let i=0;i<count;i++){const q=bank[(offset+i)%bank.length],row=document.createElement('div');row.className='problem fraction-problem';row.innerHTML=`${q.visual||''}<span class="fraction-prompt">${i+1}. ${q.prompt}</span><input class="ans" inputmode="decimal" autocomplete="off" aria-label="Answer to fraction question ${i+1}" data-answer="${q.answer}">`;grid.append(row);}
+      for(let i=0;i<count;i++){const q=bank[(offset+i)%bank.length],row=document.createElement('div');row.className='problem fraction-problem';row.innerHTML=`${q.visual||''}<span class="fraction-prompt">${i+1}. ${q.prompt}</span><input class="ans" inputmode="${level===1?'numeric':'text'}" autocomplete="off" aria-label="Answer to fraction question ${i+1}" data-answer="${q.answer}" data-strict="${q.strict?'true':'false'}">`;grid.append(row);}
     };
     section.querySelector('select').addEventListener('change',()=>{offset=0;render();});
     section.querySelector(`#l${level}-fractionRegen`).addEventListener('click',()=>{offset=(offset+5)%20;render();});
-    section.querySelector(`#l${level}-fractionCheck`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{const ok=normalise(input.value)===normalise(input.dataset.answer);input.classList.toggle('correct',ok);input.classList.toggle('incorrect',!ok&&input.value.trim()!=='');}));
+    section.querySelector(`#l${level}-fractionCheck`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{const ok=equivalent(input.value,input.dataset.answer,input.dataset.strict==='true');input.classList.toggle('correct',ok);input.classList.toggle('incorrect',!ok&&input.value.trim()!=='');}));
     section.querySelector(`#l${level}-fractionReveal`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{input.value=input.dataset.answer;input.classList.add('correct');input.classList.remove('incorrect');}));
     render();
   }

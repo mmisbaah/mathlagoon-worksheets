@@ -128,7 +128,7 @@
         const words=[title,section.querySelector('.section-sub')?.textContent,section.querySelector('.worked-example')?.textContent,question].filter(Boolean).join('. ');
         root.speechSynthesis.speak(new SpeechSynthesisUtterance(words));
       });controls.append(speak);
-      if(section.id.endsWith('-math')){
+      if(section.id.endsWith('-math')||section.id.endsWith('-fractions')){
         section.classList.add('compact-worksheet');
         const example=section.querySelector('.worked-example');
         note.hidden=true;if(example)example.hidden=true;

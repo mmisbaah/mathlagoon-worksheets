@@ -78,9 +78,13 @@ test('all levels provide progressive fraction worksheets with optional visual mo
       assert.equal(section.querySelectorAll('.fraction-problem').length,5);
       assert.equal(section.querySelectorAll('.ans').length,5);
       if(level<=3)assert.equal(section.querySelectorAll('.fraction-model').length,5);
+      assert.equal(section.classList.contains('compact-worksheet'),true);
+      assert.equal(section.querySelector('.worked-example').hidden,true);
       const count=section.querySelector('select');count.value='20';count.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(section.querySelectorAll('.fraction-problem').length,20);
-      const first=section.querySelector('.ans');first.value=first.dataset.answer;section.querySelector(`[id$="fractionCheck"]`).click();assert.equal(first.classList.contains('correct'),true);
+      const answers=[...section.querySelectorAll('.ans')];answers.forEach(input=>input.value=input.dataset.answer);section.querySelector(`[id$="fractionCheck"]`).click();assert.ok(answers.every(input=>input.classList.contains('correct')));
+      answers[0].value='not an answer';section.querySelector(`[id$="fractionCheck"]`).click();assert.equal(answers[0].classList.contains('incorrect'),true);
     }
+    const levelTwo=d.querySelector('#l2-section-fractions .ans');assert.match(levelTwo.dataset.answer,/^\d+\/\d+$/);assert.equal(levelTwo.inputMode,'text');
   }finally{w.close();}
 });
 test('curriculum labels, breadcrumbs, pictographs and spoken-instruction controls are present',()=>{
