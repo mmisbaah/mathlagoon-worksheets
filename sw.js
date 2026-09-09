@@ -1,8 +1,8 @@
-const CACHE='worksheet-hub-v4';
+const CACHE='worksheet-hub-v5';
 const APP_SHELL=[
   '/', '/index.html', '/manifest.webmanifest',
   '/assets/activities.css','/assets/interface.css','/assets/print.css','/assets/app-icon.svg',
-  '/assets/core.js','/assets/learning-data.js','/assets/level-1.js','/assets/level-2.js','/assets/level-3.js','/assets/level-4.js','/assets/level-5.js',
+  '/assets/core.js','/assets/learning-data.js','/assets/fractions.js','/assets/level-1.js','/assets/level-2.js','/assets/level-3.js','/assets/level-4.js','/assets/level-5.js',
   '/assets/shell.js','/assets/interface.js','/assets/progression.js','/assets/printing.js','/assets/pwa.js'
 ];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting())));

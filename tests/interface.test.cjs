@@ -69,6 +69,20 @@ test('selecting any level always opens that level home page',()=>{
     }
   }finally{w.close();}
 });
+test('all levels provide progressive fraction worksheets with optional visual models',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    for(let level=1;level<=5;level++){
+      const card=d.querySelector(`#l${level}-section-home [data-target="l${level}-section-fractions"]`),section=d.getElementById(`l${level}-section-fractions`);
+      assert.ok(card);assert.ok(section);card.click();assert.equal(section.classList.contains('active'),true);
+      assert.equal(section.querySelectorAll('.fraction-problem').length,5);
+      assert.equal(section.querySelectorAll('.ans').length,5);
+      if(level<=3)assert.equal(section.querySelectorAll('.fraction-model').length,5);
+      const count=section.querySelector('select');count.value='20';count.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(section.querySelectorAll('.fraction-problem').length,20);
+      const first=section.querySelector('.ans');first.value=first.dataset.answer;section.querySelector(`[id$="fractionCheck"]`).click();assert.equal(first.classList.contains('correct'),true);
+    }
+  }finally{w.close();}
+});
 test('curriculum labels, breadcrumbs, pictographs and spoken-instruction controls are present',()=>{
   const dom=load(),d=dom.window.document;
   try{

@@ -3,7 +3,7 @@
   const core=root.WorksheetCore;
   const PROFILE_KEY='wh_profiles_v1',ACTIVE_KEY='wh_active_profile',PROGRESS_KEY='wh_progression_v1';
   const levelNames=['Start','Explore','Grow','Stretch','Challenge'];
-  const strandMap={math:['Mathematics','Operations and reasoning'],numbers:['Mathematics','Number and place value'],shapes:['Mathematics','Geometry'],measurement:['Mathematics','Measurement'],patterns:['Mathematics','Patterns'],letters:['English','Reading and vocabulary'],tracing:['English','Handwriting'],grammar:['English','Grammar'],matching:['Learning skills','Visual matching'],flashcards:['Learning skills','Recall practice'],dottodot:['Enrichment','Number order'],mazes:['Enrichment','Spatial reasoning'],gk:['Enrichment','General knowledge'],bodyparts:['Enrichment','Health vocabulary'],logic:['Enrichment','Logic and reasoning']};
+  const strandMap={math:['Mathematics','Operations and reasoning'],numbers:['Mathematics','Number and place value'],fractions:['Mathematics','Fractions'],shapes:['Mathematics','Geometry'],measurement:['Mathematics','Measurement'],patterns:['Mathematics','Patterns'],letters:['English','Reading and vocabulary'],tracing:['English','Handwriting'],grammar:['English','Grammar'],matching:['Learning skills','Visual matching'],flashcards:['Learning skills','Recall practice'],dottodot:['Enrichment','Number order'],mazes:['Enrichment','Spatial reasoning'],gk:['Enrichment','General knowledge'],bodyparts:['Enrichment','Health vocabulary'],logic:['Enrichment','Logic and reasoning']};
   const awards=[
     ['first-step','First Step',s=>s.attempts>=1],['five-sheets','Practice Pal',s=>s.attempts>=5],
     ['first-master','Challenge Climber',s=>s.mastered>=1],['perfect-one','Perfect Pearl',s=>s.perfect>=1],
