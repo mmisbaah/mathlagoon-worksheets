@@ -1,7 +1,7 @@
-const CACHE='worksheet-hub-v5';
+const CACHE='worksheet-hub-v6';
 const APP_SHELL=[
   '/', '/index.html', '/manifest.webmanifest',
-  '/assets/activities.css','/assets/interface.css','/assets/print.css','/assets/app-icon.svg',
+  '/assets/activities.css','/assets/interface.css','/assets/print.css','/assets/app-icon.svg','/assets/browser-icon-v2.png',
   '/assets/core.js','/assets/learning-data.js','/assets/fractions.js','/assets/level-1.js','/assets/level-2.js','/assets/level-3.js','/assets/level-4.js','/assets/level-5.js',
   '/assets/shell.js','/assets/interface.js','/assets/progression.js','/assets/printing.js','/assets/pwa.js'
 ];
