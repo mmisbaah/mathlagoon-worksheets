@@ -79,7 +79,7 @@ test('all levels provide progressive fraction worksheets with optional visual mo
       assert.equal(section.querySelectorAll('.ans').length,5);
       if(level<=2)assert.equal(section.querySelectorAll('.fraction-model').length,5);
       if(level===3)assert.ok(section.querySelectorAll('.fraction-model').length>=5);
-      assert.equal(section.querySelectorAll('[id$="fractionMode"] option').length,[3,4,7,5,7][level-1]);
+      assert.equal(section.querySelectorAll('[id$="fractionMode"] option').length,[3,4,8,5,7][level-1]);
       assert.equal(section.classList.contains('compact-worksheet'),true);
       assert.equal(section.querySelector('.worked-example').hidden,true);
       const count=section.querySelector('[id$="fractionCount"]');count.value='20';count.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(section.querySelectorAll('.fraction-problem').length,20);

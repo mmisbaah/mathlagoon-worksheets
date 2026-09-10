@@ -51,4 +51,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .fraction-prompt{font-size:1.1rem;font-weight:700}
 .fraction-pair{display:grid;gap:5px;width:100%}.fraction-pair .fraction-model{height:34px}
 .fraction-line{position:relative;width:100%;height:64px;margin:12px 4px 0;border-top:4px solid #126b78}.fraction-line i{position:absolute;top:-10px;width:3px;height:18px;background:#126b78}.fraction-line b{position:absolute;top:-13px;width:18px;height:18px;border-radius:50%;background:#ff725e;transform:translateX(-50%);box-shadow:0 0 0 3px white}.fraction-line span{position:absolute;top:15px;font-weight:800}.line-zero{left:0}.line-one{right:0}
+.interactive-shade span{cursor:pointer}.interactive-shade span:focus-visible{outline:4px solid #124d90;outline-offset:-4px}.shade-answer{position:absolute!important;width:1px!important;height:1px!important;min-width:1px!important;min-height:1px!important;opacity:0;pointer-events:none}.shade-count{font-size:.9rem;font-weight:800;color:#315f65}
+@media print{.shade-count{display:none!important}.interactive-shade span{background:#fff!important}}
 @media(max-width:600px){.fraction-problem{grid-template-columns:1fr auto}.fraction-model{grid-column:1/-1;height:58px}.fraction-prompt{font-size:1rem}}
