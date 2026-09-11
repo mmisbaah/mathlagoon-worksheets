@@ -5,6 +5,7 @@
   function showSection(id) {
     document.querySelectorAll('#level-1 .section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
   }
   document.querySelectorAll('#level-1 .card').forEach(btn => {
     btn.addEventListener('click', () => showSection(btn.dataset.target));
