@@ -32,8 +32,8 @@ test('shade activities require learners to select the requested number of parts'
   try{
     for(let level=1;level<=2;level++){
       const mode=d.getElementById(`l${level}-fractionMode`);mode.value=level===1?'shadeHalf':'shadeUnit';mode.dispatchEvent(new w.Event('change',{bubbles:true}));
-      const row=d.querySelector(`#l${level}-section-fractions .shade-problem`),answer=row.querySelector('.shade-answer'),parts=[...row.querySelectorAll('.interactive-shade span')],target=Number(answer.dataset.answer);
-      assert.equal(answer.value,'');for(let i=0;i<target;i++)parts[i].click();assert.equal(Number(answer.value),target);
+      const row=d.querySelector(`#l${level}-section-fractions .shade-problem`),answer=row.querySelector('.shade-answer'),model=row.querySelector('.interactive-food'),target=Number(answer.dataset.answer);
+      assert.equal(answer.value,'');for(let i=0;i<target;i++)model.click();assert.equal(Number(answer.value),target);
       d.getElementById(`l${level}-fractionCheck`).click();assert.equal(answer.classList.contains('correct'),true);
     }
   }finally{dom.window.close();}

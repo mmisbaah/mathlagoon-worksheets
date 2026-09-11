@@ -9,6 +9,10 @@
     const parts=Array.from({length:d},(_,i)=>`<span class="${!blank&&i<n?'shaded':''}"${interactive?' role="button" tabindex="0" aria-label="Part '+(i+1)+'"':''}></span>`).join('');
     return `<div class="fraction-model${interactive?' interactive-shade':''}" aria-label="${label}">${parts}</div>`;
   };
+  const foodModel=(n,d,food='cake',interactive=false)=>{
+    const label=interactive?`${food} divided into ${d} equal unshaded parts`:`${n} of ${d} equal parts of the ${food} shown`;
+    return `<div class="fraction-food food-${food}${interactive?' interactive-food':''}" style="--parts:${d};--shaded:${n}" aria-label="${label}"${interactive?' role="button" tabindex="0" aria-pressed="false" data-selected="0"':''}><span aria-hidden="true"></span></div>`;
+  };
   const compareBars=(a,d,b,e)=>`<div class="fraction-pair" aria-label="Two fraction models">${bar(a,d)}${bar(b,e)}</div>`;
   const setModel=(count,selected)=>`<div class="fraction-set" aria-label="A set of ${count} shells with ${selected} highlighted">${Array.from({length:count},(_,i)=>`<span class="${i<selected?'selected':''}" aria-hidden="true">🐚</span>`).join('')}</div>`;
   const mixedBars=(whole,n,d)=>`<div class="mixed-model" aria-label="${whole} whole bars and ${n} of ${d} parts">${Array.from({length:whole},()=>bar(d,d)).join('')}${n?bar(n,d):''}</div>`;
@@ -23,13 +27,13 @@
   function question(level,mode,i){
     const simpleD=[2,3,4,5,6,8,10],d=simpleD[i%simpleD.length],n=1+(i%(d-1));
     if(mode==='count'){const parts=i%2?4:2,shaded=1+(i%parts);return {prompt:`How many of the ${parts} equal parts are shaded?`,answer:String(shaded),visual:bar(shaded,parts)};}
-    if(mode==='equalShare')return {prompt:'How many equal parts are shown?',answer:'2',visual:bar(1,2)};
-    if(mode==='name'){const whole=i%3===0;return {prompt:'Is the picture a whole or a half?',answer:whole?'whole':'half',visual:bar(whole?2:1,2),strict:true};}
-    if(mode==='shadeHalf')return {prompt:'Shade one half of the bar.',answer:'1',visual:bar(0,2,true,true),action:true};
-    if(mode==='writeUnit'){const ud=[2,3,4][i%3];return {prompt:'Write the unit fraction shown.',answer:`1/${ud}`,visual:bar(1,ud),strict:true};}
+    if(mode==='equalShare')return {prompt:'How many equal parts are shown?',answer:'2',visual:foodModel(1,2,i%2?'coconut':'cake')};
+    if(mode==='name'){const whole=i%3===0;return {prompt:'Is the picture a whole or a half?',answer:whole?'whole':'half',visual:foodModel(whole?2:1,2,i%2?'roshi':'cake'),strict:true};}
+    if(mode==='shadeHalf')return {prompt:'Shade one half of the cake.',answer:'1',visual:foodModel(0,2,'cake',true),action:true};
+    if(mode==='writeUnit'){const ud=[2,3,4][i%3];return {prompt:'Write the unit fraction shown.',answer:`1/${ud}`,visual:foodModel(1,ud,i%2?'pie':'roshi'),strict:true};}
     if(mode==='setFraction'){const sd=[2,3,4][i%3],groups=2+(i%3),total=sd*groups;return {prompt:`1/${sd} of ${total} = □`,answer:String(groups),visual:setModel(total,groups)};}
-    if(mode==='compareUnit'){const left=[2,3,4][i%3],right=[2,3,4][(i+1)%3],symbol=1/left>1/right?'>':'<';return {prompt:'Compare the top and bottom fractions.',answer:symbol,visual:compareBars(1,left,1,right),strict:true};}
-    if(mode==='shadeUnit'){const ud=[2,3,4][i%3];return {prompt:`Shade 1/${ud} of the bar.`,answer:'1',visual:bar(0,ud,true,true),action:true};}
+    if(mode==='compareUnit'){const left=[2,3,4][i%3],right=[2,3,4][(i+1)%3],symbol=1/left>1/right?'>':'<';return {prompt:'Compare the top and bottom fractions.',answer:symbol,visual:`<div class="fraction-pair">${foodModel(1,left,'cake')}${foodModel(1,right,'pie')}</div>`,strict:true};}
+    if(mode==='shadeUnit'){const ud=[2,3,4][i%3];return {prompt:`Shade 1/${ud} of the pie.`,answer:'1',visual:foodModel(0,ud,'pie',true),action:true};}
     if(mode==='shade'){const sd=level===1?(i%2?4:2):simpleD[i%5],sn=1+(i%(sd-1));return {prompt:`Shade ${sn}/${sd} of the bar.`,answer:String(sn),visual:bar(0,sd,true,true),action:true};}
     if(mode==='write')return {prompt:'Write the fraction shown.',answer:`${n}/${d}`,visual:bar(n,d),strict:true};
     if(mode==='compare'||mode==='compareDiff'){const e=mode==='compare'?d:simpleD[(i+2)%simpleD.length],b=1+((i*2+1)%(e-1)),symbol=n/d>b/e?'>':n/d<b/e?'<':'=';return {prompt:'How does the top model compare with the bottom model?',answer:symbol,visual:compareBars(n,d,b,e),strict:true};}
@@ -63,8 +67,9 @@
         row.innerHTML=`${q.visual||''}<span class="fraction-prompt">${i+1}. ${q.prompt}</span><input class="ans${q.action?' shade-answer':''}" inputmode="${level===1||['equiv','missing','quantity'].includes(mode)?'numeric':'text'}" autocomplete="off" aria-label="Answer to fraction question ${i+1}" data-answer="${q.answer}" data-strict="${q.strict?'true':'false'}">${q.action?'<span class="shade-count" aria-live="polite">0 parts shaded</span>':''}`;
         if(q.action){
           const input=row.querySelector('.ans'),status=row.querySelector('.shade-count');
-          const update=()=>{input.value=String(row.querySelectorAll('.fraction-model .shaded').length);status.textContent=`${input.value} ${input.value==='1'?'part':'parts'} shaded`;input.dispatchEvent(new Event('input',{bubbles:true}));};
-          row.querySelectorAll('.fraction-model span').forEach(part=>{const toggle=()=>{part.classList.toggle('shaded');part.setAttribute('aria-pressed',String(part.classList.contains('shaded')));update();};part.addEventListener('click',toggle);part.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}});});
+          const food=row.querySelector('.interactive-food');
+          if(food){const update=()=>{const selected=(Number(food.dataset.selected)+1)%(Number(food.style.getPropertyValue('--parts'))+1);food.dataset.selected=String(selected);food.style.setProperty('--shaded',selected);food.setAttribute('aria-pressed',String(selected>0));input.value=String(selected);status.textContent=`${selected} ${selected===1?'part':'parts'} shaded`;input.dispatchEvent(new Event('input',{bubbles:true}));};food.addEventListener('click',update);food.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();update();}});}
+          else{const update=()=>{input.value=String(row.querySelectorAll('.fraction-model .shaded').length);status.textContent=`${input.value} ${input.value==='1'?'part':'parts'} shaded`;input.dispatchEvent(new Event('input',{bubbles:true}));};row.querySelectorAll('.fraction-model span').forEach(part=>{const toggle=()=>{part.classList.toggle('shaded');part.setAttribute('aria-pressed',String(part.classList.contains('shaded')));update();};part.addEventListener('click',toggle);part.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}});});}
         }
         grid.append(row);
       }

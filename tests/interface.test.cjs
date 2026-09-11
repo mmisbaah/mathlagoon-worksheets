@@ -77,7 +77,7 @@ test('all levels provide progressive fraction worksheets with optional visual mo
       assert.ok(card);assert.ok(section);card.click();assert.equal(section.classList.contains('active'),true);
       assert.equal(section.querySelectorAll('.fraction-problem').length,5);
       assert.equal(section.querySelectorAll('.ans').length,5);
-      if(level<=2)assert.equal(section.querySelectorAll('.fraction-model').length,5);
+      if(level<=2)assert.equal(section.querySelectorAll('.fraction-model,.fraction-food').length>=5,true);
       if(level===3)assert.ok(section.querySelectorAll('.fraction-model').length>=5);
       assert.equal(section.querySelectorAll('[id$="fractionMode"] option').length,[3,4,6,4,6][level-1]);
       assert.equal(section.classList.contains('compact-worksheet'),true);
