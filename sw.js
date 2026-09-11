@@ -1,4 +1,4 @@
-const CACHE='worksheet-hub-v6';
+const CACHE='worksheet-hub-v7';
 const APP_SHELL=[
   '/', '/index.html', '/manifest.webmanifest',
   '/assets/activities.css','/assets/interface.css','/assets/print.css','/assets/app-icon.svg','/assets/browser-icon-v2.png',

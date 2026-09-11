@@ -2,7 +2,7 @@
   'use strict';
   const core=window.WorksheetCore, learning=window.WorksheetLearning;
   const make=(tag,cls,text)=>{const el=document.createElement(tag);el.className=cls;if(text)el.textContent=text;return el;};
-  const homeLink=make('a','hub-home','← Math Lagoon'); homeLink.href='https://mathlagoon.com/';
+  const homeLink=make('a','hub-home','🏝️ Back to Atollingo'); homeLink.href='https://atollingo.com/';
   document.querySelector('#app-home').before(homeLink);
   const note=make('p','skill-note','Five skill levels — not school grades. Maths, reading and optional enrichment are separate activities. Choose familiar skills first; Level 5 includes extension work.');
   document.querySelector('#app-subtitle').after(note);

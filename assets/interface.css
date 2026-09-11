@@ -54,3 +54,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .interactive-shade span{cursor:pointer}.interactive-shade span:focus-visible{outline:4px solid #124d90;outline-offset:-4px}.shade-answer{position:absolute!important;width:1px!important;height:1px!important;min-width:1px!important;min-height:1px!important;opacity:0;pointer-events:none}.shade-count{font-size:.9rem;font-weight:800;color:#315f65}
 @media print{.shade-count{display:none!important}.interactive-shade span{background:#fff!important}}
 @media(max-width:600px){.fraction-problem{grid-template-columns:1fr auto}.fraction-model{grid-column:1/-1;height:58px}.fraction-prompt{font-size:1rem}}
+
+.hub-home{min-height:48px;display:inline-flex;align-items:center;padding:10px 20px;border-radius:999px;background:#fff9e9;color:#126571;border:2px solid #207d80;box-shadow:0 4px 0 #207d80;text-decoration:none;font-weight:800}.hub-home:hover{background:#ffedb5}.hub-home:focus-visible{outline:3px solid #a94019;outline-offset:5px}@media print{.hub-home{display:none!important}}
