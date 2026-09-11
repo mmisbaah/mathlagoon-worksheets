@@ -147,3 +147,15 @@ test('printed headers and footers identify the correct level and subject',()=>{
     }
   }finally{w.close();}
 });
+test('blank and wrong responses are marked incorrect while revealed answers stay outside inputs',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    const math=d.getElementById('l1-section-math'),mathInputs=[...math.querySelectorAll('input.ans')];
+    mathInputs[0].value='999';mathInputs[1].value='';d.getElementById('l1-mathCheck').click();
+    assert.equal(mathInputs[0].classList.contains('incorrect'),true);assert.equal(mathInputs[1].classList.contains('incorrect'),true);assert.equal(mathInputs[1].getAttribute('aria-invalid'),'true');
+    const before=mathInputs.map(input=>input.value);d.getElementById('l1-mathReveal').click();
+    assert.deepEqual(mathInputs.map(input=>input.value),before);assert.ok(math.querySelectorAll('.reveal-note').length>=2);assert.ok([...math.querySelectorAll('.reveal-note')].every(note=>/^Correct answer:/.test(note.textContent)));
+    const fractions=d.getElementById('l2-section-fractions'),fractionInput=fractions.querySelector('input.ans');fractionInput.value='wrong';d.getElementById('l2-fractionCheck').click();d.getElementById('l2-fractionReveal').click();
+    assert.equal(fractionInput.value,'wrong');assert.equal(fractionInput.classList.contains('incorrect'),true);assert.match(fractionInput.nextElementSibling.textContent,/^Correct answer:/);
+  }finally{w.close();}
+});

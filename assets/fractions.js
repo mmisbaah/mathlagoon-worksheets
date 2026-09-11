@@ -76,8 +76,8 @@
     };
     section.querySelectorAll('select').forEach(select=>select.addEventListener('change',()=>{offset=0;render();}));
     section.querySelector(`#l${level}-fractionRegen`).addEventListener('click',()=>{offset=(offset+5)%20;render();});
-    section.querySelector(`#l${level}-fractionCheck`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{const ok=equivalent(input.value,input.dataset.answer,input.dataset.strict==='true');input.classList.toggle('correct',ok);input.classList.toggle('incorrect',!ok&&input.value.trim()!=='');}));
-    section.querySelector(`#l${level}-fractionReveal`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{input.value=input.dataset.answer;input.classList.add('correct');input.classList.remove('incorrect');}));render();
+    section.querySelector(`#l${level}-fractionCheck`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{const ok=equivalent(input.value,input.dataset.answer,input.dataset.strict==='true');input.classList.toggle('correct',ok);input.classList.toggle('incorrect',!ok);}));
+    section.querySelector(`#l${level}-fractionReveal`).addEventListener('click',()=>section.querySelectorAll('input.ans').forEach(input=>{if(input.nextElementSibling?.classList.contains('reveal-note'))return;const note=document.createElement('span');note.className='reveal-note';note.textContent=`Correct answer: ${input.dataset.answer}`;input.after(note);if(!input.classList.contains('correct'))input.classList.add('incorrect');}));render();
   }
   window.WorksheetFractions={configs,question};
   for(let level=1;level<=5;level++)install(level);

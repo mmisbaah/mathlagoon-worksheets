@@ -17,5 +17,5 @@ test('build copies offline entrypoints',()=>{
 });
 test('versioned critical assets bypass older offline caches',()=>{
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-  for(const asset of ['assets/interface.css?v=12','assets/core.js?v=6','assets/fractions.js?v=6','assets/progression.js?v=9','assets/printing.js?v=3'])assert.ok(html.includes(asset),asset);
+  for(const asset of ['assets/interface.css?v=12','assets/core.js?v=6','assets/fractions.js?v=7','assets/interface.js?v=1','assets/progression.js?v=9','assets/printing.js?v=3'])assert.ok(html.includes(asset),asset);
 });

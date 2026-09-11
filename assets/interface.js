@@ -21,6 +21,7 @@
   function drawHistory(){progressText.textContent=history.length?history.slice(-5).map(x=>`Level ${x.level} ${x.topic}: ${x.correct}/${x.total} (${x.date})`).join(' · '):'Complete and check a worksheet to see a summary here.';}
   drawHistory();
   const checked=new WeakMap();
+  const revealSnapshots=new WeakMap();
   function describeInput(input,index){
     const item=input.closest('.problem,.shape-card,.wp-answer,.sudoku-cell,.cw-cell');
     if(!input.hasAttribute('aria-label'))input.setAttribute('aria-label',`Answer ${index+1}. ${item?.textContent.trim().slice(0,100)||'Worksheet activity'}`);
@@ -89,16 +90,16 @@
     let correct=0,blank=0;
     inputs.forEach(input=>{
       const empty=input.value.trim()==='';
-      if(empty){blank++; input.classList.remove('correct','incorrect');}
+      if(empty){blank++;input.classList.remove('correct');input.classList.add('incorrect');}
       const ok=!empty && input.classList.contains('correct');
       if(ok)correct++;
-      input.setAttribute('aria-invalid',String(!empty&&!ok));
-      const status=make('span',`answer-status ${ok?'is-correct':''}`,empty?'Not answered yet':ok?'✓ Correct!':'↻ Try again');
+      input.setAttribute('aria-invalid',String(!ok));
+      const status=make('span',`answer-status ${ok?'is-correct':''}`,ok?'✓ Correct!':empty?'✗ Incorrect — no answer':'✗ Incorrect');
       const id=input.id||`answer-${section.id}-${inputs.indexOf(input)}`;
       input.id=id; status.id=id+'-feedback'; input.setAttribute('aria-describedby',status.id);input.after(status);
     });
     const feedback=section.querySelector('.worksheet-feedback');
-    feedback.textContent=inputs.length?`${correct} of ${inputs.length} correct. ${blank?blank+' not answered yet. ':''}${correct===inputs.length?'Well done!':'Use a hint, then try again.'}`:'Choose an answer or complete the activity above.';
+    feedback.textContent=inputs.length?`${correct} of ${inputs.length} correct. ${blank?blank+' blank '+(blank===1?'answer was':'answers were')+' marked wrong. ':''}${correct===inputs.length?'Well done!':'Use a hint, then try again.'}`:'Choose an answer or complete the activity above.';
     const retry=section.querySelector('.retry-button');if(retry)retry.hidden=!inputs.length||correct===inputs.length;
     const signature=inputs.map(el=>el.value.trim()).join('|');
     if(inputs.length && checked.get(section)!==signature){
@@ -120,12 +121,25 @@
     }}));
   }
   document.addEventListener('click',event=>{
+    const button=event.target.closest('button');if(!button||!/Reveal$/.test(button.id))return;
+    const section=button.closest('.section');if(!section)return;
+    revealSnapshots.set(button,[...section.querySelectorAll('input.ans')].map(input=>({input,value:input.value,correct:input.classList.contains('correct')})));
+  },true);
+  document.addEventListener('click',event=>{
     const button=event.target.closest('button');if(!button)return;
     const section=button.closest('.section');
     if(!section){document.querySelectorAll('.section:not([id$="-home"])').forEach(refresh);return;}
     if(/Check$/.test(button.id)) afterCheck(section);
     if(/Reveal$/.test(button.id)) {
+      const snapshot=revealSnapshots.get(button)||[];
+      snapshot.forEach(({input,value,correct})=>{
+        const revealed=input.value;
+        let note=input.nextElementSibling?.classList.contains('reveal-note')?input.nextElementSibling:null;
+        if(revealed!==value&&!note){note=make('span','reveal-note',`Correct answer: ${revealed}`);input.after(note);}
+        input.value=value;input.classList.toggle('correct',correct);input.classList.toggle('incorrect',!correct);input.setAttribute('aria-invalid',String(!correct));
+      });
       const seen=new Set();section.querySelectorAll('.reveal-note').forEach(el=>{const input=el.previousElementSibling;if(!input?.matches('input.ans')||seen.has(input))el.remove();else seen.add(input);});
+      section.querySelectorAll('.reveal-note').forEach(note=>{if(!/^Correct answer:/i.test(note.textContent)){const answer=note.textContent.replace(/^\(|\)$/g,'').trim();note.textContent=`Correct answer: ${answer}`;}const input=note.previousElementSibling;if(input?.matches('input.ans')&&!input.classList.contains('correct')){input.classList.add('incorrect');input.setAttribute('aria-invalid','true');}});
       if(section.id.endsWith('-math')){
         section.querySelectorAll('.solution-steps').forEach(el=>el.remove());
         const bank=core.worksheets[Number(section.id[1])];
