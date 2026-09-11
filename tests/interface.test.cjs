@@ -77,9 +77,9 @@ test('all levels provide progressive fraction worksheets with optional visual mo
       assert.ok(card);assert.ok(section);card.click();assert.equal(section.classList.contains('active'),true);
       assert.equal(section.querySelectorAll('.fraction-problem').length,5);
       assert.equal(section.querySelectorAll('.ans').length,5);
-      if(level<=2)assert.equal(section.querySelectorAll('.fraction-model').length,5);
+      if(level<=2)assert.equal(section.querySelectorAll('.fraction-model,.fraction-food').length>=5,true);
       if(level===3)assert.ok(section.querySelectorAll('.fraction-model').length>=5);
-      assert.equal(section.querySelectorAll('[id$="fractionMode"] option').length,[3,4,8,5,7][level-1]);
+      assert.equal(section.querySelectorAll('[id$="fractionMode"] option').length,[3,4,6,4,6][level-1]);
       assert.equal(section.classList.contains('compact-worksheet'),true);
       assert.equal(section.querySelector('.worked-example').hidden,true);
       const count=section.querySelector('[id$="fractionCount"]');count.value='20';count.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(section.querySelectorAll('.fraction-problem').length,20);
@@ -88,7 +88,7 @@ test('all levels provide progressive fraction worksheets with optional visual mo
       const mode=section.querySelector('[id$="fractionMode"]');
       for(const option of mode.options){mode.value=option.value;mode.dispatchEvent(new w.Event('change',{bubbles:true}));const prompts=[...section.querySelectorAll('.fraction-prompt')].map(el=>el.textContent);assert.equal(prompts.length,20);assert.ok(prompts.every(text=>!/[.!?].*\b(Ali|Sara|Aisha|Kandu)\b/i.test(text)));const inputs=[...section.querySelectorAll('.ans')];inputs.forEach(input=>input.value=input.dataset.answer);section.querySelector(`[id$="fractionCheck"]`).click();assert.ok(inputs.every(input=>input.classList.contains('correct')),`Level ${level} ${option.value}`);}
     }
-    const levelTwoMode=d.getElementById('l2-fractionMode');levelTwoMode.value='write';levelTwoMode.dispatchEvent(new w.Event('change',{bubbles:true}));
+    const levelTwoMode=d.getElementById('l2-fractionMode');levelTwoMode.value='writeUnit';levelTwoMode.dispatchEvent(new w.Event('change',{bubbles:true}));
     const levelTwo=d.querySelector('#l2-section-fractions .ans');assert.match(levelTwo.dataset.answer,/^\d+\/\d+$/);assert.equal(levelTwo.inputMode,'text');
   }finally{w.close();}
 });
@@ -145,5 +145,17 @@ test('printed headers and footers identify the correct level and subject',()=>{
       assert.match(host.querySelector('footer').textContent,new RegExp(`Skill Level ${level} · Math`));
       w.dispatchEvent(new w.Event('afterprint'));
     }
+  }finally{w.close();}
+});
+test('blank and wrong responses are marked incorrect while revealed answers stay outside inputs',()=>{
+  const dom=load(),w=dom.window,d=w.document;
+  try{
+    const math=d.getElementById('l1-section-math'),mathInputs=[...math.querySelectorAll('input.ans')];
+    mathInputs[0].value='999';mathInputs[1].value='';d.getElementById('l1-mathCheck').click();
+    assert.equal(mathInputs[0].classList.contains('incorrect'),true);assert.equal(mathInputs[1].classList.contains('incorrect'),true);assert.equal(mathInputs[1].getAttribute('aria-invalid'),'true');
+    const before=mathInputs.map(input=>input.value);d.getElementById('l1-mathReveal').click();
+    assert.deepEqual(mathInputs.map(input=>input.value),before);assert.ok(math.querySelectorAll('.reveal-note').length>=2);assert.ok([...math.querySelectorAll('.reveal-note')].every(note=>/^Correct answer:/.test(note.textContent)));
+    const fractions=d.getElementById('l2-section-fractions'),fractionInput=fractions.querySelector('input.ans');fractionInput.value='wrong';d.getElementById('l2-fractionCheck').click();d.getElementById('l2-fractionReveal').click();
+    assert.equal(fractionInput.value,'wrong');assert.equal(fractionInput.classList.contains('incorrect'),true);assert.match(fractionInput.nextElementSibling.textContent,/^Correct answer:/);
   }finally{w.close();}
 });
